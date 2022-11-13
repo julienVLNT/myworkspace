@@ -1,0 +1,11 @@
+Info    : Running 'gmsh -1 -o ./maillages/mesh.msh -setnumber a 1 -setnumber b 2 -setnumber h 0.1 ./geometries/segment_02.geo' [Gmsh 4.4.1, 1 node, max. 1 thread]
+Info    : Started on Sun Oct 30 14:41:28 2022
+Info    : Reading './geometries/segment_02.geo'...
+Info    : Done reading './geometries/segment_02.geo'
+Info    : Meshing 1D...
+Info    : Meshing curve 1 (Line)
+Info    : Done meshing 1D (0.0002519 s)
+Info    : 11 vertices 12 elements
+Info    : Writing './maillages/mesh.msh'...
+Info    : Done writing './maillages/mesh.msh'
+Info    : Stopped on Sun Oct 30 14:41:28 2022

@@ -1,0 +1,27 @@
+/*
+    On munit le plan d'un maillage de référence : le carré unité. On transporte
+    ce maillage par le champ de vecteurs [u, v] = 1/10 * [-y, x].
+
+    auteur : Julien VALENTIN
+    date   : 12 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\edp\transport\FreeFem\transport_maillage.edp" -ns
+*/
+real  t = 0;
+real tf = 6.28;
+real dt = 0.1;
+
+mesh Th = square(100, 100);
+plot(Th, wait=true);
+
+real[int] u = [-y, x];
+
+mesh Th1 = Th;
+for(int i=0; i < tf/dt; i++){
+    t += dt;
+
+    Th1 = movemesh(Th1, [x-.1*y, y+.1*x]);
+    plot(Th1, wait=true);
+}

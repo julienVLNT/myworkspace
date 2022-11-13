@@ -1,0 +1,22 @@
+border C(t=0, 1){
+	x = cos(2*pi*t);
+	y = sin(2*pi*t);
+	label=1;
+}
+
+mesh th = buildmesh(C(64));
+
+fespace V(th, P1);
+
+macro grad(u) [dx(u), dy(u)] //EOM
+func f = 4;
+varf F(u,v) = int2d(th)( grad(u)'*grad(v) ) + on(1, 2, 3, 4, u = 1);
+varf L(u,v) = int2d(th)( f*v );
+
+matrix    A = F(V,V);
+real[int] B = L(0,V);
+
+V u;
+u[] = A^(-1)*B;
+
+plot(u);

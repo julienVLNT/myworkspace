@@ -1,0 +1,49 @@
+/*
+    Couplage fort pour le systeme de Darcy stationnaire.
+
+    auteur : Julien VALENTIN
+    date   : 24/05/2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\physiques\darcy\FreeFem\03_darcy_nhani_fort.edp" -ns
+*/
+
+// Geometrie : cavité rectangulaire
+real largeur = 3;
+real hauteur = 1;
+int nel = 32;
+mesh Th = square(3*nel, nel, [largeur*x, hauteur*y]);
+plot(Th, cmm="cavite", wait=true);
+
+// Definition du cadre variationnel
+fespace Qh(Th, P1);
+Qh ph, qh;
+
+fespace Vh(Th, P1b);
+Vh uhx, uhy, vhx, vhy;
+
+/*
+    Fluide non-homogene : mu = mu(x,y)
+    Matériau non-homogene anisotrope :
+        K = [ [ k11(x,y), k12(x,y) ],
+              [ k21(x,y), k22(x,y)] ] 
+*/
+func mu  = 1;
+func k11 = 1;
+func k12 = 0;
+func k21 = 0;
+func k22 = 1;
+
+// Probleme variationnel
+solve darcy([uhx, uhy, ph], [vhx, vhy, qh]) 
+    = int2d(Th)( (dx(uhx)+dy(uhy))*qh )                                                     // div(v) q = 0
+    + int2d(Th)( uhx*vhx + uhy*vhy )                                                        // v | q 
+    + int2d(Th)( 1/mu * ( (k11*dx(ph)+k12*dy(ph))*vhx + (k21*dx(ph)+k22*dy(ph))*vhy ) )     // (K/mu dp) | v
+    + int2d(Th)( 1e-10*ph*qh )                                                              // penalisation
+    + on(4, ph=1)                                                                           // pression d'entree                                       
+    + on(1, 3, uhx=0, uhy=0)                                                                // ecoulement sans glissement
+    + on(2, ph=0);                                                                          // pression de sortie
+
+// Visualisation
+plot([uhx, uhy], ph, nbiso=20, value=true, wait=1);

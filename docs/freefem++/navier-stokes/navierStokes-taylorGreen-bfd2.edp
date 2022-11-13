@@ -1,0 +1,66 @@
+// Discretisation temporelle
+real t = 0;
+real tf = 1;
+real dt = 0.1;
+
+// Maillage de la cavite
+real l = pi;
+real h = pi;
+
+int[int] lab = [1, 1, 1, 1];
+
+int nely = 16;
+int nelx = int(l/h)*nely;
+
+mesh Th = square(nelx, nely, [l*x, h*y], label=lab);
+
+// Caracterisation du fluide
+real Re = 1;
+real rho = 1;
+real nu = 1;
+
+// Solution de Taylor-Green
+func vxe = sin(x) * cos(y) * exp(-2*nu*t);
+func vye = -cos(x) * sin(y) * exp(-2*nu*t);
+func pe = rho/4 * (cos(2*x) + sin(2*y)) * exp(-4*nu*t);
+
+// Construction du cadre fonctionnel
+fespace V(Th, P2);
+V vx, vy;         // vx^{n+1}, vy^{n+1}
+V vxo, vyo;       // vx^{n}, vy^{n}
+V vxoo, vyoo;     // vx^{n-2}, vy^{n-2}
+V wx, wy;         // fonctions test
+
+fespace Q(Th, P1);
+Q p;
+Q q;
+
+// Definition du probleme de Navier-Stokes
+problem navierStokes([vx, vy, p], [wx, wy, q])
+    = int2d(Th)( 3*Re/(2*dt) * (vx*wx + vy*wy + 2* (dx(vx)*dx(wx) + dy(vx)*dy(wx) + dx(vy)*dx(wy) + dy(vy)*dy(wy))) )
+    - int2d(Th)( (dx(wx) + dy(wy)) * p )
+    - int2d(Th)( (dx(vx) + dy(vy)) * q )
+    - int2d(Th)( 1e-10 * q * p )
+    - int2d(Th)( Re/(2*dt) * (4*convect([vxo, vyo], -dt, 2*vxo-vxoo)) * wx )
+    + int2d(Th)( Re/(2*dt) * (convect([vxoo, vyoo], -2*dt, 2*vxo-vxoo)) * wx )
+    - int2d(Th)( Re/(2*dt) * (4*convect([vxo, vyo], -dt, 2*vyo-vyoo)) * wy )
+    + int2d(Th)( Re/(2*dt) * (convect([vxoo, vyoo], -2*dt, 2*vyo-vyoo)) * wy )
+    + on(1, vx=vxe, vy=vye);
+
+// Initialisation
+vx = vxe;
+vy = vye;
+p = pe;
+
+for(int i=0; i < tf/dt; i++){
+    t = (i+1)*dt;
+
+    navierStokes;
+
+    plot([vx, vy], p, cmm="Navier-Stokes Taylor-Green T = "+t);
+
+    vxoo = vxo;
+    vyoo = vyo;
+    vxo = vx;
+    vyo = vy;
+}

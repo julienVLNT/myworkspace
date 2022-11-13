@@ -1,0 +1,25 @@
+// Maillage du canal
+real l = 3;
+int nel = 32;
+mesh th = square(l*nel, nel, [l*x, y]);
+
+plot(th, cmm="Canal");
+
+// Espaces d'interpolation et champs
+fespace Vh(th, P2);
+Vh vx, vy;
+Vh wx, wy;
+
+fespace Qh(th, P1);
+Qh p;
+Qh q;
+
+// Resolution du probleme
+solve stokes([vx, vy, p], [wx, wy, q])
+    = int2d(th)( (vx*wx + vy*wy) + (wx*dx(p) + wy*(dy(p))) + (vx*dx(q) + vy*dy(q)) -1e-10*p*q )
+    + on(1, vy=0)
+    + on(2, p=0)
+    + on(3, vy=0)
+    + on(4, p=1);
+
+plot([vx, vy], p, cmm="Darcy Poiseuille-Couette", value=true);

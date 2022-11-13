@@ -1,0 +1,52 @@
+/*
+    On presente la solution exacte du systeme de Navier-Stokes connue sous le 
+    nom de tourbillon de Taylor-Green. Une des expressions de cette famille de
+    solutions est 
+
+            vx(t; x, y) = sin(x) * cos(y) * exp(-2*nu*t)
+            vy(t; x, y) = -cos(x) * sin(y) * exp(-2*nu*t)
+            p(t; x, y)  = rho/4 * (cos(2*x) + sin(2*y)) * exp(-4*nu*t)
+
+    definie sur le carre [0, pi] x [0, pi].
+
+    auteur : Julien VALENTIN
+    date   : 26/05/2022
+
+    execution
+    ---------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\edp\navier-stokes\FreeFem\00_navierStokes_taylorGreen.edp" -ns
+*/
+int debug=1;
+
+// Maillage du domaine
+real l = pi;
+int nel = 16;
+int[int] labs = [1, 1, 1, 1];
+
+mesh Th = square(nel, nel, [l*x, l*y], label=labs);
+
+// Caracterisation du fluide
+real nu = 1;
+real rho = 1;
+
+// Cadre fonctionnel
+real t = 0;
+
+fespace V(Th, P2);
+V vx = sin(x) * cos(y) * exp(-2*nu*t);
+V vy = -cos(x) * sin(y) * exp(-2*nu*t);
+
+fespace Q(Th, P1);
+Q p = rho/4 * (cos(2*x) + sin(2*y)) * exp(-4*nu*t);
+
+// Affichage de la solution de Taylor-Green a t = 0
+plot([vx, vy], p, cmm="Taylor-Green a t=0", nbiso=10, value=1, wait=debug);
+
+// Affichage de la solution a t = 1
+t = 1;
+
+vx = sin(x) * cos(y) * exp(-2*nu*t);
+vy = -cos(x) * sin(y) * exp(-2*nu*t);
+p = rho/4 * (cos(2*x) + sin(2*y)) * exp(-4*nu*t);
+
+plot([vx, vy], p, cmm="Taylor-Green a t=1", nbiso=10, value=1, wait=debug);

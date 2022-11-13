@@ -1,0 +1,47 @@
+/*
+    On implemente la resolution de notre probleme a l'aide du mot-clef `problem`
+    et on le resoud dans un second temps. On mesure l'impact sur le temps d'exe-
+    cution du programme en fonction du nombre de points sur le bord du disque.
+
+    |------------------------------|-----------------------|
+    | Nombre de points sur le bord | Temps d'execution (s) |
+    |------------------------------|-----------------------|
+    |                          128 | 0.032                 |
+    |                          256 | 0.185                 |
+    |                          512 | 2.618                 |
+    |                         1024 | 34.498                |
+    |                         2048 | 496.389               |
+    |------------------------------|-----------------------|
+
+    auteur : Julien VALENTIN
+    date   : 21/05/2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ C:\Users\julien\Desktop\scikit\fr\edp\poisson\FreeFem\06_poisson2d_problem.edp -ns
+*/
+
+// Second membre
+func f = 4;
+
+// Discretisation du bord du disque
+int npoints = 4096;
+
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label = 1;
+}
+
+// Maillage du disque
+mesh Th = buildmesh(C(npoints));
+
+// Definition du cadre fonctionnel
+fespace Vh(Th, P1);
+Vh u, v;
+
+// Definition du probleme variationnel
+problem poisson2d(u, v, solver=GMRES) = int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) ) - int2d(Th)( f*v ) + on(1, u=0);
+
+// Resolution du probleme
+poisson2d;

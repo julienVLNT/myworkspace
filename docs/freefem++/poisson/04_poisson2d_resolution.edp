@@ -1,0 +1,55 @@
+/*
+    On poursuit en testant la resolution de notre probleme de poisson sur une 
+    grille fine. On reprend le probleme modele et on le resoud par algorithme 
+    GMRES. Resultats sur Intel(R) Core(TM) i7-8750H CPU @2.20Ghz.
+
+    |------------------------------|-----------------------|
+    | Nombre de points sur le bord | Temps d'execution (s) |
+    |------------------------------|-----------------------|
+    |                          128 | 0.037                 |
+    |                          256 | 0.208                 |
+    |                          512 | 2.676                 |
+    |                         1024 | 79.843 ~ 1 min 19     |
+    |                         2048 |                       |
+    |------------------------------|-----------------------|
+
+    Dans le prochain script, on utilise le meme cas test avec parallelisation
+    PETSc.
+
+    auteur : Julien VALENTIN
+    date   : 10 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\edp\poisson\FreeFem\04_poisson2d_resolution.edp" -ns
+*/
+
+// Solution exacte
+func u = 1 - x^2 - y^2;
+
+// Second membre
+func f = 4;
+
+// Discretisation du bord du disque
+int npoints = 2048;
+
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label = 1;
+}
+
+// Maillage du disque
+mesh Th = buildmesh(C(npoints));
+
+// Definition du cadre fonctionnel
+fespace Vh(Th, P1);
+Vh uh, vh;
+
+// Resolution du probleme variationnel
+solve poisson2d(uh, vh, solver=GMRES) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( f*vh ) + on(1, uh=0);
+
+
+/////////
+// FIN //
+/////////

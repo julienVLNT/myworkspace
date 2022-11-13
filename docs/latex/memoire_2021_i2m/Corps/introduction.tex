@@ -1,0 +1,18 @@
+\addcontentsline{toc}{chapter}{Introduction}
+
+\chapter*{Introduction}
+
+Le sujet de mon stage au sein de l'équipe d'Analyse Appliquée de l'Institut de Mathématiques de Marseille devait être consacré à l'étude numérique de l'écoulement d'un fluide dans une fracture, en deux dimensions d'espace. Nous aurions eu alors une superposition de trois couches : une couche poreuse sur une couche fluide, les deux sur une seconde couche poreuse. Ce genre de modèle trouve des applications très variées. Les interactions \textit{fluides poreux} se trouvent aussi bien dans les sciences médicales que les géosciences, ou encore dans le domaine de l'énergie. On commence par modéliser les écoulements monophasiques puis on peut étudier le transport de polluants, leur infiltration, leur interaction avec une autre phase. 
+
+On pense par exemple aux infiltrations d'eau de mer dans les nappes phréatiques par infiltration dans un sol, solide certes mais pas imperméable. On peut aussi imaginer une fissure dans une canalisation, et tenter de quantifier l'impact en terme de perte en eau dans un réseau de distribution. Enfin, on peut penser à des vaisseaux sanguins détériorés... Les applications sont, donc, très vastes, et touchant à des domaines stratégiques.
+
+Je n'ai pas réussi à faire plus qu'effleurer le sujet initialement prévu par mon tuteur Philippe Angot, l'essentiel de mon temps ayant été consacré à découvrir le domaine de la modélisation des milieux continus en physique, s'en est suivie une longue phase d'appréhension de l'analyse des modèles proposés pour les écoulements de fluides visqueux ; enfin, mais bien tard, il m'a fallu découvrir la méthode des volumes finis et les quelques subtilités qui la rendent différente des différences finies. La majeur partie du temps ayant été consacrée à l'apprentissage des pré-requis d'une part et des bonnes pratiques d'autre part, je me suis trouver à cours de temps pour achever le stage.
+
+Tout d'abord, un chapitre préliminaire est consacré aux concepts des volumes finis et à leur application au langage Python. J'ai hésité avant de mettre les codes en eux-mêmes ; ils sont présents car font partie intégrante du stage, et le format mémoire ne présente en principe pas de contrainte de pagination. Ils n'y seraient pas dans d'autres contexte. Du reste, ils justifient en partie la nécessité de choisir des technologies, et font donc entièrement partie de la réflexion lorsqu'on aborde un sujet tel que l'analyse numérique.
+
+Le deuxième chapitre introduira le système de Stokes, la théorie permettant d'obtenir une formulation variationnelle et introduira la notion de condition $\inf \sup$, résultat primordial pour obtenir l'existence et l'unicité d'une solution. On présentera alors un maillage admissible pour la simulation des problèmes de type Stokes stationnaire et deux solutions exactes qui serviront à valider les schéma proposés. Ensuite on passera un peu de temps sur les problèmes de Stokes dépendant du temps et on utilisera une méthode de projection scalaire pour simuler les tourbillons de Taylor-Green.
+
+Ensuite viendra le moment d'étudier l'écoulement de fluides visqueux monophasiques dans un milieu poreux. On validera également le comportement du code développé pour le système de Stokes dans ce contexte nouveau mais assez proche. En particulier, on étudiera numériquement le lien entre les différents termes de l'équation de Brinkman, posé comme un problème de Stokes généralisé.
+
+Enfin, et pour conclure, on proposera une tentative d'implémentation d'un saut, nul, entre une couche poreuse et un milieu fluide. Cette proposition étant visiblement un échec, les erreurs obtenues étant en ordre de grandeur, trop grandes. Cela dit, on verra que la tendance est à la convergence malgré tout. 
+

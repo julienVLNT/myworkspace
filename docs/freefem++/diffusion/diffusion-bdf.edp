@@ -1,0 +1,38 @@
+macro grad(u) [dx(u), dy(u)] //EOM
+
+func real ff(real t){
+	return 4*t + 1 - x^2 - y^2;
+}
+
+border C(t=0, 1){
+	x = cos(2*pi*t);
+	y = sin(2*pi*t);
+	label=1;
+}
+
+mesh th = buildmesh(C(64));
+
+fespace V(th, P1);
+V f, u, up;
+
+varf F(u,v) = int2d(th)( u*v + grad(u)'*grad(v) ) + on(C, u = 1);
+varf L(u,v) = int2d(th)( up*v + f*v );
+
+real t  = 0;
+real T  = 10;
+real dt = .1;
+
+matrix A = F(V,V);
+real[int] b = L(0,V);
+for(int i=0; i <= T/dt; ++i){
+	
+	f = ff(t);
+	A = F(V,V);
+	b = L(0,V);
+	u[] = A^(-1)*b;
+
+	plot(u, cmm="t="+t);
+
+	up = u;
+	t += dt;
+}

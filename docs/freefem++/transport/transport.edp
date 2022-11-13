@@ -1,0 +1,58 @@
+/*
+    Implementation d'un phenomene de transport à l'aide de FreeFem++.
+    Soit
+
+                u0(x, y) = e^{-10*[ (x-0.25)^2 + (y-0.25)^2 ]}
+    
+    definie sur le disque unite du plan. On transporte le signal par le champ 
+    de vecteurs 
+
+                                (a, b) = (-1, -1)
+
+    auteur : Julien VALENTIN
+    date   : 11 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ C:\Users\julien\Documents\GitHub\Scikit\fr\edp\transport\FreeFem\transport.edp -ns
+*/
+
+// Situation initiale
+func u0 = exp( - ( (x-0.25)^2 + (y-0.25)^2 ) );
+
+// Discretisation temporelle
+real  t = 0;
+real tf = 6.28;
+real dt = 0.1;
+
+// Discretisation du bord du disque
+int npoints = 128;
+
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label = 1;
+}
+
+// Maillage du disque
+mesh Th = buildmesh(C(npoints));
+
+// Definition du cadre fonctionnel
+fespace Vh(Th, P1);
+Vh uh, uh0, ah, bh;
+
+ah = -0.1;
+bh = -0.1;
+uh = u0;
+
+// Extrapolation temporelle
+string titre;
+
+for(int m=0; m < tf/dt; m++){
+    t   = t + dt;
+    uh0 = uh;
+    uh  = convect([ah, bh], -dt, uh0);
+
+    titre = "t = " + t;
+    plot(uh, cmm=titre, value=true, wait=true);
+}

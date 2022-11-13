@@ -1,0 +1,15 @@
+// Maillage d'un cercle servant d'obstacle dans le cas du projet de contrôle de
+// Navier-Stokes bi-stable.
+int nel = 32;
+real x0 = 1;
+real y0 = 1;
+real r  = 1;
+
+border obstacle(t=0, 1){
+    x = x0 + r*cos(2*pi*t);
+    y = y0 + r*sin(2*pi*t);
+    label=1;
+}
+
+mesh th = buildmesh(obstacle(nel));
+plot(th);

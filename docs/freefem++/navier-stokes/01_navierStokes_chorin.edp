@@ -1,0 +1,126 @@
+/*
+    On cherche maintenant a approcher numeriquement la solution de Taylor-Green
+    pour le probleme de Navier-Stokes stationnaire par une methode de 
+    projection - correction scalaire.
+
+    On rappelle que le probleme de Navier-Stokes s'ecrit 
+
+                                                    div( v ) = 0      dans Omega
+        rho dv/dt + (v . grad) v + grad(p) - nu laplacien(v) = 0      dans Omega
+                                                        v(0) = v_0    a t = 0 dans Omega
+                                                     v(t; G) = v_G    a t quelconque sur le bord (Dirichlet) de Omega
+                                               d(n, v(t; G)) = dv_G   a t quelconque sur le bord (Neumann) de Omega
+
+    Une des methodes possibles est d'utiliser l'algorithme de Chorin, decompose
+    en trois etapes : prediction, projection, correction. L'etape de prediction
+    consiste en la resolution du pobleme
+    
+               1/dt * [v - v^n(X^n)] + grad(p)^n - nu Laplacien(v^n) = 0
+                                                            v(t; G)  = v_G
+                                                        nu * v(t; G) = dv_G
+
+    La projection se resoud par une equation de Poisson.
+
+                   - Laplacien( p^(n+1) ) = - div( v^n(X^n) )   dans Omega
+                            d(n, p^(n+1)) = 0                   sur le bord Dirichlet
+                                  p^(n+1) = 0                   sur le bord Neumann
+
+    et v(X) = v( x - v(t;x) dt ) est approche par la methode des caracteristiques.
+
+    La correction s'effectue avec le schema suivant
+
+            v^(n+1) = v + P grad(q) dt
+            p^(n+1) = p^n - q
+
+    ou q est donne par - Laplacien(q) = div(v), q = 0 sur le bord sortant.
+
+    auteur : Julien VALENTIN
+    date   : 26/05/2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\edp\navier-stokes\FreeFem\01_navierStokes_chorin.edp" -ns
+*/
+int debug=0;
+
+// Discretisation temporelle
+real t;
+real T = 3;
+real dt = 0.1;
+
+// Maillage du domaine
+int nely = 32;
+
+real l = pi;
+real h = pi;
+
+mesh Th = square(int(l/h)*nely, nely, [l*x, h*y]);
+plot(cmm="Maillage de la cavite", Th, wait=debug);
+
+// Caracterisation du fluide
+real nu = 1;
+real rho = 1;
+
+// Declaration du cadre fonctionnel
+fespace V(Th, P1);
+
+V vx, vy;
+V w;
+V p;
+V q;
+
+// Definition des operateurs d'evolution dtMx, dtMy
+matrix dtMx, dtMy;
+{
+    varf M(unused, w) = int2d(Th)( w );
+    varf Dx(v, w) = int2d(Th)( w*dx(v)*dt );
+    varf Dy(v, w) = int2d(Th)( w*dy(v)*dt );
+
+    real[int] Ml = M(0, V);
+    real[int] un(V.ndof);
+    un = 1;
+
+    real[int] dM = un ./ Ml;
+    matrix DM = dM;
+
+    matrix Mdx = Dx(V, V);
+    matrix Mdy = Dy(V, V);
+
+    dtMx = DM * Mdx;
+    dtMy = DM * Mdy;
+}
+
+// Extrapolation temporelle
+real r = 1;
+
+for(int i=0; i < T/dt; i++){
+    t = (i+1)*dt;
+
+    V oldvx = vx;
+    V oldvy = vy;
+    V oldp = p;
+
+    solve xpred(vx, w)
+        = int2d(Th)( vx*w/dt + nu * (dx(vx)*dx(w) + dy(vx)*dy(w)) )
+        - int2d(Th)( convect([oldvx, oldvy], -dt, oldvx) * w / dt - dx(p) * w )
+        + on(1, 2, 3, 4, vx = sin(x) * cos(y) * exp(-2*nu*t))
+        ; 
+
+    solve ypred(vy, w)
+        = int2d(Th)( vy*w/dt + nu * (dx(vy)*dx(w) + dy(vy)*dy(w)) )
+        - int2d(Th)( convect([oldvx, oldvy], -dt, oldvy) * w / dt - dy(p) * w )
+        + on(1, 2, 3, 4, vy = -cos(x) * sin(y) * exp(-2*nu*t) )
+        ;
+
+    solve proj(q, w)
+        = int2d(Th)( dx(q)*dx(w) + dy(q)*dy(w) )
+        - int2d(Th)( (dx(vx) + dy(vy)) * w / dt )
+        ;
+
+    p = oldp - q;
+    vx[] += dtMx * q[];
+    vy[] += dtMy * q[]; 
+
+    plot([vx, vy], p, cmm="t = " + t, value=1);
+
+}

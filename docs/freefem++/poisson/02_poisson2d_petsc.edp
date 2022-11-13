@@ -1,0 +1,75 @@
+/*
+    On reprend le probleme precedent et on le distribue sur quatre processeurs 
+    a l'aide de la l'A.P.I PETSc disponible sur FreeFem. 
+
+    - Solution exacte
+    - Chargement de l'API PETSc
+    - Chargement de la librairie macro_ddm.idp
+    - Construction du maillage global
+    - Declaration de l'operateur distribue Ah
+    - Declaration du cadre fonctionnel fespace Vh(Th, P1)
+    - Definition du probleme variationnel sous forme matricielle
+        - varf a(u, v) = [...]
+        - varf l(u, v) = [...]
+        - Ah = a(Vh, Vh)
+        - real[int] bh = l(0, Vh)
+    - Resolution
+    - Visualisation
+    - Export .vtk
+
+    auteur : Julien VALENTIN, d'apres 
+    date   : 10 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    mpiexec -n 2 FreeFem++-mpi "C:\Users\julien\Desktop\scikit\fr\edp\poisson\FreeFem\02_poisson2d_petsc.edp" -ns -wg
+*/
+
+// Second membre
+func f = -4;
+
+// A.P.I PETSc
+load "PETSc"
+macro dimension()2// fin de macro
+
+// Librairie FreeFem pour la parallelisation
+include "macro_ddm.idp"
+
+// Maillage global
+int npoints = 4096;
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label=1;
+}
+mesh Th = buildmesh(C(getARGV("-global", npoints)));
+
+// Creation de l'operateur distribue
+Mat Ah;
+buildMat(Th, getARGV("-split", 1), Ah, P1, mpiCommWorld)
+set(Ah, sparams = "-ksp_view");
+
+// Cadre fonctionnel local
+fespace Vh(Th, P1);
+
+// Definition des formes variationnelles pour l'assemblage de A u = b
+varf a(u, v, solver=GMRES) = int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) ) + on(1, u = 0);
+
+varf l(u, v) = int2d(Th)( u*v ) + int2d(Th)( f*v ) + on(1, u=0);
+real[int] b = l(0, Vh);
+
+// Modification d'un parametre sur A
+set(Ah, sparams = "-ksp_view");
+
+// Declaration de la solution locale
+Vh<real> u;
+
+Ah = a(Vh, Vh);
+u[] = Ah^(-1) * b;
+
+macro def(u)u//
+plotMPI(Th, u, P1, def, real, cmm="Solution globale")
+
+/////////
+// FIN //
+/////////

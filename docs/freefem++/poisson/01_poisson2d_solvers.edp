@@ -1,0 +1,117 @@
+/*
+    Reprise du script de resolution du probleme de Poisson en deux dimensions 
+    sur le disque unite pour comparaison des differents solvers implementes en 
+    FreeFem++.
+
+    auteur : Julien VALENTIN
+    date   : 10 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ -v 0 "C:\Users\julien\Documents\GitHub\Scikit\fr\edp\poisson\FreeFem\01_poisson2d_solvers.edp"
+*/
+
+// Solution exacte
+func u = 1 - x^2 - y^2;
+
+// Second membre
+func rhs = 4;
+
+// Discretisation du bord du disque
+int npoints = 1024;
+
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label = 1;
+}
+
+// Maillage du disque
+mesh Th = buildmesh(C(npoints));
+
+// Definition du cadre fonctionnel
+fespace Vh(Th, P1);
+Vh uh, vh;
+
+/*
+    Debut du parcours des solvers
+    -----------------------------
+    Par defaut     : 1.136   s
+    Cholesky       : 4.767   s
+    Crout          : 5.243   s
+    G. C.          : 1.438   s
+    G. M. R. E. S. : 0.355   s
+    L.U.           : 9.131   s
+    sparsesolver   : 1.161   s
+    UMFPACK        : 1.150   s
+
+    || u - uh ||_L^2(Th) ~ 1.1177e-05
+*/
+
+cout << "Solver par defaut " << endl;
+real tic = clock();
+solve poisson2d(uh, vh) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tac = clock();
+real erreur = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tac - tic << " s" << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreur << endl << endl;
+
+cout << "Solver Cholesky " << endl;
+real ticCholesky = clock();
+solve poisson2dCholesky(uh, vh, solver=Cholesky) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacCholesky = clock();
+real erreurCholesky = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacCholesky - ticCholesky << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurCholesky << endl << endl;
+
+cout << "Solver Crout " << endl;
+real ticCrout = clock();
+solve poisson2dCrout(uh, vh, solver=Crout) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacCrout = clock();
+real erreurCrout = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacCrout - ticCrout << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurCrout << endl << endl;
+
+cout << "Solver Gradient Conjugue " << endl;
+real ticCG = clock();
+solve poisson2dCG(uh, vh, solver=CG) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacCG = clock();
+real erreurCG = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacCG - ticCG << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurCG << endl << endl;
+
+cout << "Solver G.M.R.E.S " << endl;
+real ticGMRES = clock();
+solve poisson2dGMRES(uh, vh, solver=GMRES) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacGMRES = clock();
+real erreurGMRES = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacGMRES - ticGMRES << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurGMRES << endl << endl;
+
+cout << "Solver L.U. " << endl;
+real ticLU = clock();
+solve poisson2dLU(uh, vh, solver=LU) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacLU = clock();
+real erreurLU = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacLU - ticLU << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurLU << endl << endl;
+
+cout << "Solver Sparsesolver " << endl;
+real ticSparse = clock();
+solve poisson2dSparse(uh, vh, solver=sparsesolver) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacSparse = clock();
+real erreurSparse = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacSparse - ticSparse << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurSparse << endl << endl;
+
+cout << "Solver UMFPACK " << endl;
+real ticUMFPACK = clock();
+solve poisson2dUMFPACK(uh, vh, solver=UMFPACK) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( rhs*vh ) + on(1, uh=0);
+real tacUMFPACK = clock();
+real erreurUMFPACK = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+cout << "\t" << "Poisson resolu en " << tacUMFPACK - ticUMFPACK << " s" << endl << endl;
+cout << "\t" << "Erreur || u - uh ||_L^2 " << erreurUMFPACK << endl << endl;
+
+/////////
+// FIN //
+/////////

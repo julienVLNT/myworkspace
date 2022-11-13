@@ -1,0 +1,153 @@
+// Maillage du canal
+real L = 3;
+real H = 1;
+border bas(t=0, 1){
+    x = t*L;
+    y = 0;
+    label=1;    // bords du canal
+}
+border droit(t=0, 1){
+    x = L;
+    y = t*H;
+    label=2;    // sortie de l'ecoulement
+}
+border haut(t=0, 1){
+    x = (1-t)*L;
+    y = H;
+    label=1;
+}
+border gauche(t=0, 1){
+    x = 0;
+    y = (1-t)*H;
+    label=1;
+}
+
+real x0 = L/4;
+real y0 = H/2;
+real r  = H/8;
+border obstacle(t=0, 1){
+    x = x0 + r*cos(2*pi*t);
+    y = y0 + r*sin(2*pi*t);
+    label=3;    // limites sur l'obstacle
+}
+
+int nel = 16;
+mesh th = buildmesh( bas(L/H*nel) + droit(nel) + haut(L/H*nel) + gauche(nel) + obstacle(-nel) );
+plot(th);
+
+// Caracterisation de l'ecoulement
+real mu = 1e-3;
+real vmax = 1.0;
+real vb = 2/3*vmax;
+real re = vb*H/mu;
+
+// Espaces d'interpolation
+fespace V(th, P2);      // vitesses
+fespace W(th, P2dc);    // vortex
+fespace Q(th, P1);      // pression
+
+V vx, vy;
+
+// Discretisation temporelle
+real t = 0;              // date initiale
+real tf = 10;            // date finale
+real dt = H/nel/vmax;    // C.F.L = 1
+
+// Conditions aux limites
+func ventx = 4.*vmax*y*(H-y)/(H*H);    // vitesse d'entree (bord label 2) horizontale
+func venty = 0.;                       // vitesse d'entree (bord label 2) verticale
+
+// Construction du schema
+real epspq = 1e-10;
+real eps = 1e-6;
+
+varf vbcv([vx, vy, p], [wx, wy, q]) = on(1, vx=ventx, vy=venty) + on(3, vx=0, vy=0);
+
+varf vA(p, q) 
+    = int2d(th)( [dx(p), dy(p)]'*[dx(q), dy(q)] )    // produit scalaire des gradient de pression et pression virtuelle
+    + int1d(th,2)( 100*p*q )                         // penalisation sur la sortie
+    ;
+
+varf vM(p, q)
+    = int2d(th, qft=qf2pT)( p*q )
+    + on(3, p=0)
+    ;
+
+varf vV(v, w) 
+    = int2d(th)( 
+            1/dt*(v*w)
+        +   mu*(dx(v)*dx(w) + dy(v)*dy(w))
+    )
+    + on(1, 3, v=0)
+    ;
+
+varf vdx(p, v) = int2d(th)( p*dx(v) );    // projection horizontale de p*grad(w)
+varf vdy(p, v) = int2d(th)( p*dy(v) );    // projection verticale de p*grad(w)
+
+varf vbcx(v, w) = on(1, v=ventx) + on(3, v=0.0);
+varf vrhsx(v, w) = int2d(th)(convect([vx, vy], -dt, vx)*w/dt) + vbcx;
+
+varf vbcy(v, w) = on(1, v=venty) + on(3, v=0.0);
+varf vrhsy(v, w) = int2d(th)(convect([vx, vy], -dt, vy)*w/dt) + vbcx;
+
+// Construction des elements du systeme lineaire
+matrix pAM = vM(Q,Q);
+matrix pAA = vA(Q,Q);
+matrix AV  = vV(V,V);
+matrix Bx  = vdx(Q,V);
+matrix By  = vdy(Q,V);
+
+real[int] brhsx = vbcx(0,V);
+real[int] brhsy = vbcy(0,V);
+
+// Fonction d'Uzawa
+func real[int] Juzawa( real[int]& pp ){
+    real[int] bx = brhsx;
+    real[int] by = brhsy;
+
+    bx += Bx*pp;
+    by += By*pp;
+
+    vx[] = AV^(-1) * bx;
+    vy[] = AV^(-1) * by;
+
+    pp  = Bx'*vx[];
+    pp += By'*vy[];
+    pp  = -pp;
+
+    return pp;
+}
+
+// Fonction de preconditionnement
+func real[int] Precon( real[int]& p ){
+    real[int] pa = pAA^-1*p;
+    real[int] pm = pAM^-1*p;
+    real[int] pp = 1/dt*pa + mu*pm;
+    return pp;
+}
+
+// Initialisation
+W w = 0;
+Q p = 0;
+
+// Extrapolation temporelle
+for(int i=0; i < tf/dt + dt; i++){
+
+    // Mise a jour
+    brhsx = vrhsx(0,V);
+    brhsy = vrhsy(0,V);
+
+    // Resolution du probleme d'optimisation
+    int res = LinearCG(Juzawa, p[], precon=Precon, nbiter=100, verbosity=10, veps=eps);
+    assert(res==1);
+    eps = -abs(eps);
+
+    // Calcul du vortex
+    w = -dy(vx) + dx(vy);
+    plot(w, fill=true, wait=0, nbiso=40);
+
+    // Mise a jour du pas de temps
+    dt = min(dt, tf-t);
+    t += dt;
+    if(dt < 1e-10*tf) { break; }
+}

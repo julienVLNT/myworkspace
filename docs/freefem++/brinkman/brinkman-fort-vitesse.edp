@@ -1,0 +1,31 @@
+real mu = 1;
+real phi = 1;
+
+// Maillage de la cavite
+int nel = 32;
+mesh th = square(nel, nel);
+
+plot(th, cmm="Cavite");
+
+// Espaces d'interpolation et champs
+fespace Vh(th, P2);
+Vh vx, vy;
+Vh wx, wy;
+
+fespace Qh(th, P1);
+Qh p;
+Qh q;
+
+// Macros
+macro div(vx, vy) (dx(vx) + dy(vy)) //
+macro D(ux, uy) [[dx(ux), dy(ux)], [dx(uy), dy(uy)]] //
+
+// Resolution du probleme
+solve stokes([vx, vy, p], [wx, wy, q])
+    = int2d(th)( mu/phi*(D(vx, vy):D(wx, wy)) - p*div(wx, wy) - q*div(vx, vy) - 1e-10*p*q )
+    + on(3, vx=1, vy=0)
+    + on(1, vx=0, vy=0)
+    + on(2, vx=0, vy=0)
+    + on(4, vx=0, vy=0);
+
+plot([vx, vy], p, cmm="Brinkman cavite", value=true);

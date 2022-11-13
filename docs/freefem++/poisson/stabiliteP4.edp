@@ -1,0 +1,38 @@
+load "Element_P4"
+
+ofstream myfile("stabiliteP4.csv");
+myfile << "N ; ErreurL2" << endl; 
+
+real errl2;
+
+macro grad(u) [dx(u), dy(u)] //EOM
+
+func g = 1 - (x^2 + y^2);
+func f = 4;
+
+border C(t=0, 1){
+	x = cos(2*pi*t);
+	y = sin(2*pi*t);
+	label=1;
+}
+
+int[int] nel = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096];
+
+for [i, n : nel]{
+	mesh th = buildmesh(C(n));
+
+	fespace V(th, P4);
+	V err;
+	
+	varf F(u,v) = int2d(th)( grad(u)'*grad(v) ) + on(1, u = 0);
+	varf L(u,v) = int2d(th)( f*v );
+
+	matrix    A = F(V,V);
+	real[int] B = L(0,V);
+
+	V u;
+	u[] = A^(-1)*B;
+	
+	errl2 = sqrt( int2d(th)( (u-g)^2 ) / th.area );
+	myfile << n << " ; " << errl2 << endl;
+}

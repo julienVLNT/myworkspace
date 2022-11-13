@@ -1,0 +1,65 @@
+// Maillage de la cavite
+int nel = 32;
+mesh th = square(nel, nel);
+
+plot(th, cmm="Cavite");
+
+// Espaces d'interpolation
+fespace Vh(th, P2);
+Vh vx, vy;
+Vh bcx;    // conditions aux limites de Dirichlet non-homogènes sur vx
+Vh b;      // second membre
+
+fespace Qh(th, P1);
+Qh p;
+Qh ppp;
+
+// Définition du problème
+varf a(u, v)
+    = int2d(th)( dx(u)*dx(v) + dy(u)*dy(v) )
+    + on(3, u=1)
+    + on(1, 2, 4, u=0);
+
+varf bx(u, q)
+    = int2d(th)( -q*dx(u) );
+
+varf by(u, q)
+    = int2d(th)( -q*dy(u) );
+
+// Contruction des opérateurs
+matrix A = a(Vh, Vh);      // 
+matrix BX = bx(Vh, Qh);    //
+matrix BY = by(Vh, Qh);    //
+
+// Affectation des conditions aux limites non-homogenes sur vx
+bcx[] = a(0, Vh);
+
+// Fonction : état |--> résidu 
+func real[int] uzawa(real[int]& pp){
+
+    // résolution de la vitesse horizontale
+    b[]  = BX'*pp;
+    b[] *= -1;
+    b[] += bcx[];
+    vx[] = A^(-1) * b[];
+
+    // résolution de la vitesse verticale
+    b[]  = BY'*pp;
+    b[] *= -1;
+    vy[] = A^(-1)*b[];
+
+    // résolution en pression
+    ppp[]  = BX*vx[];
+    ppp[] += BY*vy[];
+
+    return ppp[];
+}
+
+// Initialisation
+p = 0;
+
+// Appel de l'algorithme d'optimisation
+LinearCG(uzawa, p[], eps=1.e-6, nbiter=50);
+
+// Visualisation
+plot([vx, vy], p, cmm="Stokes Uzawa en cavite", value=true);

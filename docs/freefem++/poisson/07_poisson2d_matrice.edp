@@ -1,0 +1,62 @@
+/*
+    On implemente la construction des objets du systeme lineaire associe au
+    probleme
+
+                            a(u, v) = l(v)
+
+    ou u, v sont des elements de H^1_0. FreeFem ne prevoit pas la construction
+    de formes lineaires, il faut donc ruser en declarant l(u, v) comme une 
+    forme bilineaire et l'evaluer en prenant sa premiere variable comme etant
+    identiquement nulle.
+
+    |------------------------------|-----------------------|
+    | Nombre de points sur le bord | Temps d'execution (s) |
+    |------------------------------|-----------------------|
+    |                          128 | 0.054                 |
+    |                          256 | 0.118                 |
+    |                          512 | 0.49                  |
+    |                         1024 | 2.289                 |
+    |                         2048 | 11.671                |
+    |                         4096 | 64.153                |
+    |                         8192 | (Out of memory)       |
+    |------------------------------|-----------------------|
+
+    auteur : Julien VALENTIN
+    date   : 21/05/2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ C:\Users\julien\Desktop\scikit\fr\edp\poisson\FreeFem\07_poisson2d_matrice.edp -ns
+*/
+
+// Second membre
+func f = 4;
+
+// Discretisation du bord du disque
+int npoints = 8192;
+
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label = 1;
+}
+
+// Maillage du disque
+mesh Th = buildmesh(C(npoints));
+
+// Definition du cadre fonctionnel
+fespace Vh(Th, P1);
+Vh u, v;
+
+// Definition des formes du probleme variationnel
+varf a(u, v, solver=GMRES) = int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) ) + on(1, u=0);
+varf l(u, v) = int2d(Th)( u*v ) + int2d(Th)( f*v ) + on(1, u=0);
+
+// Construction du systeme lineaire : A u = b
+matrix A = a(Vh, Vh);
+real[int] b = l(0, Vh);
+
+// Declaration et resolution
+u[] = A^(-1)*b;
+
+plot(u, cmm="Solution", value=true);

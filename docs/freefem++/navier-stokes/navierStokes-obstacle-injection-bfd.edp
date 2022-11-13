@@ -1,0 +1,131 @@
+// Discretisation temporelle
+real t = 0;
+real tf = 10;
+real dt = 0.1;
+
+// Maillage
+real L = 3;
+real H = 1;
+
+border bas(t=0, 1){
+    x = t*L;
+    y = 0;
+    label=1;    // label impermeable
+}
+border droit(t=0, 1){
+    x = L;
+    y = t*H;
+    label=2;    // label de sortie
+}
+border haut(t=0, 1){
+    x = (1-t)*L;
+    y = H;
+    label=1;
+}
+border gauche(t=0, 1){
+    x = 0;
+    y = (1-t)*H;
+    label=3;    // label d'entree du canal
+}
+
+real x0 = L/3;
+real y0 = H/2;
+real r  = H/6;
+real sec = pi/24;
+
+border c1(t=0, pi/2-sec){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+    label=1;
+}
+border c2(t=pi/2-sec, pi/2+sec){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+    label=4;    // label d'injection depuis le haut de l'obstacle
+}
+border c3(t=pi/2+sec, 3*pi/2-sec){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+    label=1;
+}
+border c4(t=3*pi/2-sec, 3*pi/2+sec){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+    label=5;    // label d'injection depuis le bas de l'obstacle
+}
+border c5(t=3*pi/2+sec, 2*pi){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+    label=1;
+}
+
+int nely = 16;
+int nelx = L/H*nely;
+
+mesh th = buildmesh(
+            bas(nelx)
+        +   droit(nely)
+        +   haut(nelx)
+        +   gauche(nely)
+        +   c1(-nelx/3)
+        +   c2(-nelx/3)
+        +   c3(-nelx)
+        +   c4(-nelx)
+        +   c5(-nelx)
+        );
+
+// Espaces d'interpolation et champs
+fespace V(th, P2);
+fespace Q(th, P1);
+
+V vx, vy;
+V vpx, vpy;
+V wx, wy;
+
+Q p;
+Q q;
+
+// Conditions aux limites
+include "getARGV.idp"
+
+real vmax = 1;
+func vent = vmax * (1.-(y-H/2.)^2/(H/2.)^2);    // vitesse sur le bord d'entree (Poiseuille)
+
+real VINJ = getARGV("-vinj", 1);    // norme de la vitesse d'injection
+real beta = getARGV("-beta", 1);    // angle (par rapport à e_y) de la direction de l'injection
+func vinjx = VINJ*sin(beta);
+func vinjy = VINJ*cos(beta);
+
+// Second membre
+func fx = 0;
+func fy = 0;
+
+// Resolution
+solve navier([vx, vy, p], [wx, wy, q])
+    = int2d(th)(
+		  1/dt*( vx*wx + vy*wy )
+		+ ( dx(vx)*dx(wx) + dy(vx)*dy(wx) + dx(vy)*dx(wy) + dy(vy)*dy(wy) )
+		- p*(dx(wx) + dy(wy))
+		- q*(dx(vx) + dy(vy))
+	)
+	- int2d(th)(
+		  1/dt*[convect([vpx, vpy], -dt, vpx), convect([vpx, vpy], -dt, vpy)]' * [wx, wy]
+		+ [fx, fy]' * [wx, wy]
+	)
+	+ on(1, vx=0., vy=0.)
+	+ on(3, vx=vent)
+    + on(4, vx=vinjx, vy=vinjy)
+    + on(5, vx=vinjx, vy=-vinjy)
+    ;
+
+// Extrapolation en temps
+for (int i = 0; i < tf/dt+dt; i++) {
+    
+    navier;
+
+    vpx = vx;
+    vpy = vy;
+    t += dt;
+
+	plot([vx, vy], p, cmm="Ecoulement - t="+t);
+}

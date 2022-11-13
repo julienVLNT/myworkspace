@@ -1,0 +1,48 @@
+/*
+    auteur : Julien VALENTIN
+    date   : 22/05/2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\physiques\darcy\FreeFem\01_darcy_nhani.edp" -ns
+*/
+
+// Géométrie : cavité rectangulaire
+real largeur = 1;
+real hauteur = 1;
+
+int nely = 64;
+int nelx = largeur/hauteur*nely;
+
+mesh Th = square(nelx, nely, [largeur*x, hauteur*y]);
+plot(Th, cmm="cavite", wait=true);
+
+// Definition du cadre variationnel
+fespace Qh(Th, P1);
+Qh ph, qh;
+
+fespace Vh(Th, P1b);
+Vh uh, vh;
+
+/*
+    Fluide non-homogene : mu = mu(x,y)
+    Matériau non-homogene anisotrope :
+        K = [ [ k11(x,y), k12(x,y) ],
+              [ k21(x,y), k22(x,y)] ] 
+*/
+func mu  = x+y;
+func k11 = x;
+func k12 = -y;
+func k21 = -x;
+func k22 = y;
+
+// Probleme variationnel
+solve darcy(ph, qh) = int2d(Th)( 1/mu * (k11*dx(ph)+k12*dy(ph))*dx(qh) + (k21*dx(ph)+k22*dy(ph))*dy(qh) ) + on(1, ph=1) + on(3, ph=0);
+
+uh = -dx(ph);
+vh = -dy(ph);
+
+plot(ph, cmm="pression", value=true, wait=true);
+plot(uh, cmm="vitesse horizontale", value=true, wait=true);
+plot(vh, cmm="vitesse verticale", value=true, wait=true);
+plot([uh,vh], cmm="vitesse", value=true, wait=true);

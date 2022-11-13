@@ -1,0 +1,30 @@
+int nel = 32;
+real x0 = 1;
+real y0 = 1;
+real r  = 1;
+
+border c1(t=0, pi/2-pi/24){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+}
+border c2(t=pi/2-pi/24, pi/2+pi/24){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+}
+border c3(t=pi/2+pi/24, 3*pi/2-pi/24){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+}
+border c4(t=3*pi/2-pi/24, 3*pi/2+pi/24){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+}
+border c5(t=3*pi/2+pi/24, 2*pi){
+	x = x0 + r*cos(t);
+	y = y0 + r*sin(t);
+}
+
+mesh th = buildmesh( c1(nel) + c2(nel) + c3(nel) + c4(nel) + c5(nel) );
+
+load "medit"
+medit("Obstacle", th);

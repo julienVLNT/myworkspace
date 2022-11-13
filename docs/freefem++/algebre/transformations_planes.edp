@@ -1,0 +1,62 @@
+/*
+    Illustration des operations usuelles de l'algebre lineaire dans le plan. 
+    On modelise les vecteurs reels par le type `real[int]`, et les matrices 
+    sont representes par le type `matrix`.
+
+    auteur : Julien VALENTIN
+    date   : 14/05/2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\algebre_lineaire\FreeFem\transformations_planes.edp" -ns
+*/
+
+// Declaration de la base canonique du plan
+real[int] e1 = [1, 0];
+real[int] e2 = [0, 1];
+
+// Produit d'un vecteur par un scalaire
+real[int] vec = 3*e1;
+cout << "3 * e1 = " << vec << endl;
+
+// Matrice nulle
+matrix O = [[0, 0], [0, 0]];
+
+// Matrice identite
+matrix I = [[1, 0], [0, 1]];
+
+// Base de l'espace des matrices planes M(2, 2)(R)
+matrix M11 = [[1, 0], [0, 0]];
+matrix M12 = [[0, 1], [0, 0]];
+matrix M21 = [[0, 0], [1, 0]];
+matrix M22 = [[0, 0], [0, 1]];
+
+// Transposition d'une matrice
+matrix M = M12';
+cout << "[[0, 1], [0, 0]].T = " << M << endl;
+
+// Structure de groupe
+M = M11 + M12;
+cout << "M11 + M12 = " << M << endl;
+M = M11 - M22;
+cout << "M11 - M22 ="  << M << endl; 
+
+// Produit d'une matrice par un scalaire
+M = 4 * I;
+cout << "4*I = " << M << endl;
+
+// Matrice de la rotation d'angle pi/2
+matrix Rpi2 = [[cos(pi/2), -sin(pi/2)], [sin(pi/2), cos(pi/2)]];
+
+// Assemblage d'une matrice de rotation d'angle t
+macro Rt(t)[[cos(t), -sin(t)], [sin(t), cos(t)]] //
+matrix Rpi = Rt(pi);
+cout << "Rt(pi) = " << Rpi << endl;
+
+// Produit matrice - vecteur : application de la rotation a e1
+real[int] Rte1 = Rpi2*e1;
+cout << "Rt.e1 = " << Rte1 << endl;
+
+// Produit matriciel pour la composition d'applications lineaires
+M = [[1, 2], [3, 4]] * [[5, 6], [7, 8]];
+cout << "[[1, 2], [3, 4]]' * [[5, 6], [7, 8]] = " << M << endl;

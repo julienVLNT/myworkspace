@@ -1,0 +1,87 @@
+/*
+    Implementation d'un probleme de Poisson de Dirichlet sur le disque unite du 
+    plan. Soit
+
+                    u : x, y |---> 1 - x^2 - y^2
+
+    definie sur le carre. C'est une fonction lisse sur la geometrie en tant que 
+    restriction à une sous-variete d'une fonction lisse du plan. De plus, elle 
+    verifie le probleme de Poisson avec conditions aux limites de Dirichlet 
+    homogenes.
+
+                    du/dx = -2x ; d2u/dx2 = -2
+                    du/dy = -2y ; d2u/dy2 = -2
+
+    i.e
+
+                    -( d2u/dx2 + d2u/dy2 ) = 4
+                                u(||x||=1) = 0
+    
+    - Solution exacte
+    - Second membre
+    - Discretisation du bord
+    - Maillage
+    - Definition du cadre fonctionnel
+    - Resolution du probleme variationnel (encapsule dans temps de calcul CPU)
+    - Export .vtk
+    - Affichage des courbes de niveau
+    - Estimation de l'erreur L^2(Th)
+    - Affichage du champ d'erreur |u - uh|(x,y)
+
+    auteur : Julien VALENTIN
+    date   : 10 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    FreeFem++ -v 0 "C:\Users\julien\Documents\GitHub\Scikit\fr\edp\poisson\FreeFem\00_poisson2d.edp"
+*/
+
+// Solution exacte
+func u = 1 - x^2 - y^2;
+
+// Second membre
+func f = 4;
+
+// Discretisation du bord du disque
+int npoints = 128;
+
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label = 1;
+}
+
+// Maillage du disque
+mesh Th = buildmesh(C(npoints));
+
+// Definition du cadre fonctionnel
+fespace Vh(Th, P1);
+Vh uh, vh;
+
+real tic = clock();
+// Resolution du probleme variationnel
+solve poisson2d(uh, vh) = int2d(Th)( dx(uh)*dx(vh) + dy(uh)*dy(vh) ) - int2d(Th)( f*vh ) + on(1, uh=0);
+
+real tac = clock();
+cout << "Temps CPU de la resolution " << tac-tic << endl;
+
+// export .vtk pour post-traitement dans Paraview
+load "iovtk"
+int[int] ordre = [1];
+string     nom = "C:/Users/julien/Documents/GitHub/Scikit/fr/edp/poisson/FreeFem/out/uh.vtk";
+savevtk(nom, Th, [uh, 0.0, 0.0], dataname="Uh", order=ordre);
+
+// Visualisation de la solution
+plot(uh, cmm="Solution Uh", value=true, wait=true);
+
+// Estimation de la norme L^2(Th) de l'erreur
+real erreurL2 = sqrt( int2d(Th)(square(u-uh)) / Th.measure );
+
+// Visualisation du champ d'erreur
+Vh erreur;
+erreur = abs(u-uh);
+plot(erreur, cmm="Champ d'erreur ; ||u-uh||_L2 = "+erreurL2, value=true, wait=true);
+
+/////////
+// FIN //
+/////////

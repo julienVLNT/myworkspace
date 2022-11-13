@@ -1,0 +1,54 @@
+// Maillage
+real L = 9;
+real H = 3;
+border bas(t=0, 1){
+    x = t*L;
+    y = 0;
+    label=1;
+}
+border droit(t=0, 1){
+    x = L;
+    y = t*H;
+    label=2;
+}
+border haut(t=0, 1){
+    x = (1-t)*L;
+    y = H;
+    label=3;
+}
+border gauche(t=0, 1){
+    x = 0;
+    y = (1-t)*H;
+    label=4;
+}
+
+real x0 = L/3;
+real y0 = H/2;
+real r  = H/6;
+border obstacle(t=0, 1){
+    x = x0 + r*cos(2*pi*t);
+    y = y0 + r*sin(2*pi*t);
+    label=5;
+}
+
+int nel = 25;
+mesh th = buildmesh( bas(L/H*nel) + droit(nel) + haut(L/H*nel) + gauche(nel) + obstacle(-nel) );
+
+// Espaces d'interpolation et champs
+fespace Vh(th, P2);
+Vh vx, vy;
+Vh wx, wy;
+
+fespace Qh(th, P1);
+Qh p;
+Qh q;
+
+// Resolution du probleme
+solve stokes([vx, vy, p], [wx, wy, q])
+    = int2d(th)( (dx(vx)*dx(wx) + dy(vx)*dy(wx) + dx(vy)*dx(wy) + dy(vy)*dy(wy)) + (wx*dx(p) + wy*(dy(p))) + (vx*dx(q) + vy*dy(q)) - 1e-10*p*q )
+    + on(1, vx=0, vy=0)
+    + on(2, p=0)
+    + on(3, vx=0, vy=0)
+    + on(4, p=1);
+
+plot([vx, vy], p, cmm="Stokes avec obstacle v3", value=true);

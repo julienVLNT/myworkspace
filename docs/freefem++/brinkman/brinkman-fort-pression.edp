@@ -1,0 +1,34 @@
+real mu = 1;
+real phi = 1;
+
+// Maillage du canal
+real l = 3;
+int nel = 32;
+mesh th = square(l*nel, nel, [l*x, y]);
+
+plot(th, cmm="Canal");
+
+// Espaces d'interpolation et champs
+fespace Vh(th, P2);
+Vh vx, vy;
+Vh wx, wy;
+
+fespace Qh(th, P1);
+Qh p;
+Qh q;
+
+// Macros
+macro vec(ux, uy) [ux, uy] //
+macro grad(r) [dx(r), dy(r)] //
+macro K() [[1, 0], [0, 1]] //
+macro D(ux, uy) [[dx(ux), dy(ux)], [dx(uy), dy(uy)]] //
+
+// Resolution du probleme
+solve stokes([vx, vy, p], [wx, wy, q])
+    = int2d(th)( mu/phi*(D(vx, vy):D(wx, wy)) + vec(wx, wy)'*(K*grad(p)) + vec(vx, vy)'*grad(q) -1e-10*p*q )
+    + on(1, vx=0, vy=0)
+    + on(2, p=0)
+    + on(3, vx=0, vy=0)
+    + on(4, p=1);
+
+plot([vx, vy], p, cmm="Brinkman Poiseuille-Couette", value=true);

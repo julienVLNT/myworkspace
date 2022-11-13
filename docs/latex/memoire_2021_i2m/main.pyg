@@ -1,0 +1,110 @@
+# Assemblage du Laplacien de Neumann pour P
+N = 5*(ny-1)*(nx-1) + 2*4*(ny-1) + 2*4*(nx-1) + 3 * 3 + 1
+lignes   = numpy.zeros(N)
+colonnes = numpy.zeros(N)
+donnees  = numpy.zeros(N)
+
+compteur = 0
+for j in range(ny+1):
+        for i in range(nx+1):
+
+            if i == 0 and j == 0:
+                lignes[compteur]   = j * (nx+1) + i
+                colonnes[compteur] = j * (nx+1) + i
+                donnees[compteur]  = 1
+                compteur += 1
+
+            elif i == 0 and j == ny:
+                lignes[compteur : compteur+3] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i + 1
+                colonnes[compteur+2] = (j-1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = 2 * dy / dx
+                donnees[compteur+2]  = 2 * dx / dy
+                compteur += 3
+
+            elif i == nx and j == 0:
+                lignes[compteur : compteur+3] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i - 1
+                colonnes[compteur+2] = (j+1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = 2 * dy / dx
+                donnees[compteur+2]  = 2 * dx / dy
+                compteur += 3
+
+            elif i == nx and j == ny:
+                lignes[compteur : compteur+3] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i - 1
+                colonnes[compteur+2] = (j-1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = 2 * dy / dx
+                donnees[compteur+2]  = 2 * dx / dy
+                compteur += 3
+
+            elif i == 0 and j > 0 and j < ny:
+                lignes[compteur : compteur+4] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i + 1
+                colonnes[compteur+2] = (j-1) * (nx+1) + i
+                colonnes[compteur+3] = (j+1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = 2 * dy/dx
+                donnees[compteur+2]  = dx/dy
+                donnees[compteur+3]  = dx/dy
+                compteur += 4
+
+            elif i == nx and j > 0 and j < ny:
+                lignes[compteur : compteur+4] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i - 1
+                colonnes[compteur+2] = (j-1) * (nx+1) + i
+                colonnes[compteur+3] = (j+1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = 2 * dy/dx
+                donnees[compteur+2]  = dx/dy
+                donnees[compteur+3]  = dx/dy
+                compteur += 4
+
+            elif j == 0 and i > 0 and i < nx:
+                lignes[compteur : compteur+4] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i - 1
+                colonnes[compteur+2] = j * (nx+1) + i + 1
+                colonnes[compteur+3] = (j+1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = dy/dx
+                donnees[compteur+2]  = dy/dx
+                donnees[compteur+3]  = 2 * dx/dy
+                compteur += 4
+
+            elif j == ny and i > 0 and i < nx:
+                lignes[compteur : compteur+4] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i - 1
+                colonnes[compteur+2] = j * (nx+1) + i + 1
+                colonnes[compteur+3] = (j-1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = dy/dx
+                donnees[compteur+2]  = dy/dx
+                donnees[compteur+3]  = 2 * dx/dy
+                compteur += 4
+
+            else:
+                lignes[compteur : compteur+5] = j * (nx+1) + i
+                colonnes[compteur]   = j * (nx+1) + i
+                colonnes[compteur+1] = j * (nx+1) + i - 1
+                colonnes[compteur+2] = j * (nx+1) + i + 1
+                colonnes[compteur+3] = (j-1) * (nx+1) + i
+                colonnes[compteur+4] = (j+1) * (nx+1) + i
+                donnees[compteur]    = - 2 * (dy/dx + dx/dy)
+                donnees[compteur+1]  = dy/dx
+                donnees[compteur+2]  = dy/dx
+                donnees[compteur+3]  = dx/dy
+                donnees[compteur+4]  = dx/dy
+                compteur += 5
+
+App = sparse.coo_matrix((dt*donnees, (lignes, colonnes)), shape=((ny+1)*(nx+1), (ny+1)*(nx+1))).tocsc()
+Mp = sparse.linalg.LinearOperator(((ny+1)*(nx+1), (ny+1)*(nx+1)), splu(App).solve)

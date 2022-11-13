@@ -1,0 +1,84 @@
+/*
+    On souhaite approcher la solution de Taylor-Green pour un ecoulement 
+    stationnaire a l'aide de la methode de Newton. Le modele de Navier-
+    Stokes stationnaire s'ecrit 
+
+                                                   div(v) = 0
+                (v grad(v)) v - nu Laplacien(v) + grad(p) = 0
+
+    auteur : Julien VALENTIN
+    date   : 26/05/2022
+
+    execution
+    ---------
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\edp\navier-stokes\FreeFem\03_navierStokesStationnaire_newton.edp" -ns
+*/
+int debug=0;
+
+// Maillage du domaine
+int nely = 64;
+int[int] lab = [1, 1, 1, 1];
+
+real l = pi;
+real h = pi;
+
+mesh Th = square(int(l/h)*nely, nely, [l*x, h*y], label=lab);
+plot(cmm="Maillage de la cavite", Th, wait=debug);
+
+// Caracterisation du fluide
+real rho = 1;
+real nu = 1;
+
+// Solution exacte
+func vxe = sin(x) * cos(y);
+func vye = -cos(x) * sin(y);
+func pe  = rho/4 * (cos(2*x) + sin(2*y));
+
+// Definition des espaces d'interpolation
+fespace V(Th, P2b);
+V dvx, dvy;
+V vx, vy;
+V vxp, vyp;
+V wx, wy;
+
+fespace Q(Th, P2);
+Q dp;
+Q p;
+Q pp;
+Q q;
+
+// Definition du probleme d'Oseen pour appel a chaque iteration
+problem Oseen([dvx, dvy, dp], [wx, wy, q])
+    = int2d(Th)( nu * ( dx(dvx)*dx(wx) + dy(dvx)*dy(wy) + dx(dvy)*dx(wy) + dy(dvy)*dy(wy) ) 
+                + ( (dvx*dx(vx) + dvy*dy(vx))*wx + (dvx*dx(vy) + dvy*dy(vy))*wy )
+                + ( (vx*dx(dvx) + vy*dy(dvx))*wx + (vx*dx(dvy) + vy*dy(dvy))*wy )
+                - ( dx(dvx) + dy(dvy) ) * q
+                - ( dx(wx) + dy(wy) ) * dp
+                - 1e-5 * dp * q )
+    - int2d(Th)( nu * ( dx(vx)*dx(wx) + dy(vx)*dy(wx) + dx(vy)*dx(wy) + dy(vy)*dy(wy) )
+               + ( vx*dx(vx) + vy*dy(vx) )*wx 
+               + ( vx*dx(vy) + vy*dy(vy) )*wy 
+               - ( dx(vx) + dy(vy) ) * q 
+               - ( dx(wx) + dy(wy) ) * p )
+    + on(1, dvx = vxe, dvy = vye);
+
+// Initialisation pour la methode de Newton
+vx = 0;
+vy = 0;
+
+// Construction de la suite d'approximation par methode de Newton
+int nbiter = 10;
+
+for( int i=0; i<nbiter; i++){
+    Oseen;
+
+    vx[] -= dvx;
+    vy[] -= dvy;
+    p[] -= dp;
+
+    vxp[] = vx;
+    vyp[] = vy;
+    pp[] = p;
+
+    plot([dvx, dvy], cmm="Etat fluide, i = " + (i+1), value=true, wait=debug);
+}

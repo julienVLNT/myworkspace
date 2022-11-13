@@ -1,0 +1,128 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\babel@toc {french}{}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{Introduction}{2}{chapter*.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {1}Préliminaires sur les volumes finis et le langage Python}{4}{chapter.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.1}Exemple introductif}{4}{section.1.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.2}Problème modèle en dimension deux}{6}{section.1.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Formulation du système linéaire}{8}{section*.8}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.3}Résolution par méthode G.M.R.E.S}{11}{section.1.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.4}Résolution par la méthode BI.C.G.STAB}{12}{section.1.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.5}Conclusion de la comparaison des méthodes}{13}{section.1.5}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.6}La question du préconditionnement}{13}{section.1.6}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.7}Conclusion}{18}{section.1.7}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {2}Analyse \& analyse numérique pour le système de Stokes}{19}{chapter.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.1}Modélisation des fluides visqueux}{19}{section.2.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.2}Approximation de Stokes : les faibles nombres de Reynolds}{19}{section.2.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{L'équation de Stokes stationnaire avec conditions de Dirichlet homogène}{20}{section*.40}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Définition d'une solution classique}{20}{section*.41}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Exemples de solutions classiques}{20}{section*.42}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Cadre fonctionnel pour Stokes stationnaire et conditions homogènes en vitesse}{21}{section*.46}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Formulation comme point selle d'un lagrangien}{22}{section*.47}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Autre formulation du problème de Stokes}{24}{section*.48}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.3}Maillage Marker \& Cell}{24}{section.2.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Le maillage M.A.C}{24}{section*.49}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Laplacien de Dirichlet sur le maillage de $U_h$}{25}{section*.52}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Laplacien de Dirichlet sur le maillage de $V_h$}{25}{section*.55}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Laplacien de Neumann sur le maillage de pression}{27}{section*.58}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Discrétisation du système de Stokes}{27}{section*.61}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Méthode de pénalisation}{28}{section*.62}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.4}Le système de Stokes dépendant du temps}{29}{section.2.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Système de Stokes dépendant du temps}{29}{section*.63}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Cadre fonctionnel pour Stokes dépendant du temps}{29}{section*.64}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Formulation contrainte du problème}{29}{section*.65}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Une formulation mixte}{29}{section*.66}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.5}Analyse numérique pour le problème de Stokes dépendant du temps}{30}{section.2.5}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Exemple de l'équation de réaction-diffusion avec Dirichlet aux bords}{30}{section*.67}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Une méthode de projection}{32}{section*.72}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Implémentation de projection scalaire pour Stokes 2.D}{32}{section*.73}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.6}Conclusion}{35}{section.2.6}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {3}Deux modèles d'écoulement en milieu poreux : Darcy et Brinkman}{36}{chapter.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.1}Description d'un milieu poreux}{36}{section.3.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Volume d'un élément représentatif élémentaire}{36}{section*.80}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{La porosité volumique}{36}{section*.81}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{La taille des pores}{36}{section*.82}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{La perméabilité du milieu}{36}{section*.83}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Autres grandeurs}{37}{section*.87}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.2}Dynamique des écoulements en milieu poreux}{37}{section.3.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Système de Darcy-Brinkman}{37}{section*.88}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Formulation variationnelle}{37}{section*.90}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.3}Expériences numériques pour le système de Brinkman dépendant du temps en deux dimensions}{38}{section.3.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Obtention du système linéaire}{38}{section*.91}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Tenseur de perméabilité sphérique}{39}{section*.92}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Tenseur de perméabilité orthotrope}{41}{section*.97}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.4}\'Etude numérique de la dégénerescence en système de Darcy}{41}{section.3.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Estimation du nombre de brinkman en fonction de la porosité}{41}{section*.99}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Robustesse du code}{42}{section*.101}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3.5}Conclusion}{45}{section.3.5}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {4}Superposition d'une couche fluide sur une couche poreuse}{46}{chapter.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.1}Mise en situation}{46}{section.4.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Modèle pour le milieu fluide $\Omega _f$}{47}{section*.110}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Modèle pour le milieu poreux}{47}{section*.111}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Tenseur de stress du problème}{47}{section*.112}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{Existence et unicité avec viscosité variable}{48}{section*.113}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.2}Expérience numérique en 2.D}{48}{section.4.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.3}Conclusion}{48}{section.4.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{Conclusion}{48}{section.4.3}%

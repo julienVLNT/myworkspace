@@ -1,0 +1,91 @@
+/*
+    Etude de l'impact de la parallelisation sur n processeurs pour le probleme 
+    modele.
+
+    ----- PARALLELISATION SUR 2 PROCESSEURS -----
+
+    |------------------------------|-----------------------|
+    | Nombre de points sur le bord | Temps d'execution (s) |
+    |------------------------------|-----------------------|
+    |                          128 | 0.039                 |
+    |                          256 | 0.102                 |
+    |                          512 | 0.658                 |
+    |                         1024 | 4.089                 |
+    |                         2048 | 33.649                |
+    |                         4096 | 396.195               |
+    |------------------------------|-----------------------|
+
+    ----- PARALLELISATION SUR 4 PROCESSEURS -----
+
+    |------------------------------|-----------------------|
+    | Nombre de points sur le bord | Temps d'execution (s) |
+    |------------------------------|-----------------------|
+    |                          128 | 0.048                 |
+    |                          256 | 0.102                 |
+    |                          512 | 0.53                  |
+    |                         1024 | 3.637                 |
+    |                         2048 | 30.393                |
+    |                         4096 | 424.492               |
+    |------------------------------|-----------------------|
+
+    Apres consultation des ressources du gestionnaire des taches, il semblerait
+    que ma machine instancie quatre processus mais uniquement sur deux 
+    processeurs. D'ou, probablement, la similitude entre les tables n=2 et n=4.
+
+    auteur : Julien VALENTIN
+    date   : 10 mai 2022
+
+    execution dans un terminal externe
+    ----------------------------------
+    mpiexec -n 4 FreeFem++-mpi "C:\Users\julien\Desktop\scikit\fr\edp\poisson\FreeFem\05_poisson2d_resolution.edp" -ns
+*/
+
+// Second membre
+func f = -4;
+
+// A.P.I PETSc
+load "PETSc"
+macro dimension()2// fin de macro
+
+// Librairie FreeFem pour la parallelisation
+include "macro_ddm.idp"
+
+// Maillage global
+int npoints = 1024;
+border C(t=0, 1){
+    x = cos(2*pi*t);
+    y = sin(2*pi*t);
+    label=1;
+}
+mesh Th = buildmesh(C(getARGV("-global", npoints)));
+
+// Creation de l'operateur global
+Mat Ah;
+buildMat(Th, getARGV("-split", 1), Ah, P1, mpiCommWorld)
+set(Ah, sparams = "-ksp_view");
+
+// Creation du second membe global
+real[int] b;
+
+// Cadre fonctionnel
+fespace Vh(Th, P1);
+
+// Definition des formes variationnelles pour l'assemblage de A u = b 
+varf a(u, v, solver=sparsesolver) = int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) ) + on(1, u = 0);
+varf l(u, v) = int2d(Th)( u*v ) + int2d( f*v ) + on(1, u=0);
+
+// Modification d'un parametre sur A
+set(Ah, sparams = "-ksp_view");
+
+// Declaration de la solution locale
+Vh<real> u;
+
+// Assemblage et resolution
+Ah = a(Vh, Vh);
+b = l(0, Vh);
+
+u[] = Ah^(-1) * b;
+
+/////////
+// FIN //
+/////////

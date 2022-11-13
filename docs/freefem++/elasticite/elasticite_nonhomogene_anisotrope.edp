@@ -1,0 +1,52 @@
+/*
+    Implementation d'un systeme de Lamé pour une piece anisotrope non
+    homogene. On suppose que la piece est fixee aux bords verticaux et qu'elle
+    subit son propre poids, vertical descendant dans le repere de l'experience.
+
+    FreeFem++ "C:\Users\julien\Desktop\scikit\fr\physiques\lame\FreeFem\00_lame_nhani.edp" -ns
+*/
+// Geometrie de la piece
+real l = 1;
+int nel = 64;
+
+mesh Th = square(nel, nel, [l*x, l*y]);
+plot(Th, cmm="Piece initiale", wait=true);
+
+// Caracterisation de la piece et de ses lois de deformation
+func E = 1;         // module d'Young
+func nu = 1;        // coefficient de Poisson
+
+func Q1111 = 1;     // dependent des coefficients ci-dessus
+func Q1122 = 1;     //                "
+func Q1112 = 1;     //                "
+func Q2211 = 1;     //                "
+func Q2222 = 1;     //                "
+func Q2212 = 1;     //                "
+func Q1211 = 1;     //                "
+func Q1222 = 1;     //                "
+func Q1212 = 1;     //                "
+
+// Definition du cadre fonctionnel
+fespace V(Th, P1);
+V ux, uy, vx, vy;
+
+// Definition du probleme de Lame
+func fextx =  0;
+func fexty = -1;
+
+solve lame([ux, uy], [vx, vy])
+    = int2d(Th)( (dx(ux)+dy(uy))*(dx(vx)+dy(vy)) )                                      // div(u) div(v)
+    + int2d(Th)(
+            (Q1111*dx(ux) + Q1122*dy(uy) + Q1112*(dx(uy)+dy(ux))) * dx(vx)              // Sig(1,1)(u) = Q(1,1, ., .) E(u)
+        +   (Q2211*dx(ux) + Q2222*dy(uy) + Q2212*(dx(uy)+dy(ux))) * dy(vy)              // Sig(2,2)(u) = Q(2,2, ., .) E(u)
+        +   (Q1211*dx(ux) + Q1222*dy(uy) + Q1212*(dx(uy)+dy(ux))) * (dx(vy)+dy(vx))     // Sig(1,2)(u) = Q(1,2, ., .) E(u)
+    )
+    - int2d(Th)( fextx*vx + fexty*vy )                                                  // f | v
+    + on(2, 4, ux=0, uy=0)
+    + on(1, 3, ux=0);
+
+plot([ux, uy], cmm="Champ de deformation", value=true, wait=true);
+
+// Deformation de la piece
+Th = movemesh(Th, [x+ux, y+uy]);
+plot(Th, cmm="Piece deformee");

@@ -1,0 +1,20 @@
+// Maillage d'une cavite
+mesh th = square(32, 32, [pi*x, pi*y]);
+
+// Caracterisation du fluide
+real mu  = 1;
+real rho = 1;
+
+// Solution analytique de Taylor-Green
+func vxe =  sin(x) * cos(y);
+func vye = -cos(x) * sin(y);
+func pe  =  rho/4 * (cos(2*x) + sin(2*y));
+
+// Espaces d'interpolation et champs
+fespace Vh(th, P2);
+Vh vx=vxe, vy=vye;
+
+fespace Qh(th, P1);
+Qh p=pe;
+
+plot([vx, vy], p, cmm="Fonction de Taylor-Green");
