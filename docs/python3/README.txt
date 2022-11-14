@@ -19,16 +19,30 @@ INSTALLER PYTHON3
 
 ENVIRONNEMENTS
 --------------
-    ANALYSE NUMERIQUE
-    -----------------
+    MATHEMATIQUES NUMERIQUES
+    ------------------------
         - matplotlib : `pip3 install matplotlib`
         - numpy : `pip3 install numpy`
         - scipy : `pip3 install scipy`
         - sympy : `pip3 install sympy`
 
+    DATA VISUALIZATION
+    ------------------
+        - bokeh : `pip3 install bokeh`
+        - matplotlib : `pip3 install matplotlib`
+        - plotly : `pip3 install plotly`
+        - seaborn : `pip3 install seaborn`
+
     INTERACTIF
     ----------
         - jupyter Lab : `pip3 install jupyterlab`
+        - widgetsnbextension : `pip3 install widgetsnbextension`
+
+    MACHINE LEARNING
+    ----------------
+        - pytorch : `pip3 install torch`
+        - scikit-learn : `pip3 install sklearn`
+        - tensorflow : `pip3 install tensorflow`
 
 
 EXEMPLES
