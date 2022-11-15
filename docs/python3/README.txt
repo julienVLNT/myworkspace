@@ -33,6 +33,11 @@ ENVIRONNEMENTS
         - plotly : `pip3 install plotly`
         - seaborn : `pip3 install seaborn`
 
+    ELEMENTS FINIS
+    --------------
+        - meshio : `pip3 install meshio[all]`
+        - scikit-fem : `pip3 install scikit-fem`
+
     INTERACTIF
     ----------
         - jupyter Lab : `pip3 install jupyterlab`
