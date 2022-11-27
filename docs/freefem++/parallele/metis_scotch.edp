@@ -1,0 +1,63 @@
+// D'après l'exposé de Pierre Jolivet aux FreeFEM days 2021
+// Partition du carré unité, restriction à un sous-domaine, prolongement par 
+// continuité.
+
+// Construction du carré unité
+mesh Th = square(20, 20);
+plot(Th);    // affichage, <m> pour afficher (ou masquer) les aretes
+
+// Espace d'interpolation : champ constant sur chaque élément
+fespace Ph(Th, P0);
+Ph c;    // couleur
+
+// Avec Metis : scinder le domaine Th en 4 couleurs, écrire les couleurs dans le
+// vecteur des valeurs de c.
+load "metis"
+metisdual(c[], Th, 4);
+plot(c, cmm="Coloration de la partition");
+// On remarque que la décomposition présente des angles, les bords sont des 
+// lignes brisées.
+
+// Avec Scotch : la partition est bien plus "droite".
+load "scotch"
+scotch(c[], Th, 5);
+plot(c);
+
+// Scinder le maillage à l'aide de Scotch : on le scinde en un seul morceau
+mesh Thbis = trunc(Th, 1);
+cout << Th.nt << "==" << Thbis.nt << endl;    // même nombre de triangles
+
+// Decrire le sous-domaine dont la couleur vaut 2 avec Scotch
+mesh Thdeux = trunc(Th, abs(c-2) < 1e-5);    // critère numérique d'égalité
+
+// Itérer sur les sous-domaines : affichage de chacun d'eux tour à tour
+for(int i=0; i<5; i++) {
+        mesh Thbis = trunc(Th, abs(c-i) < 1e-5);
+        plot(Thbis, cmm="Sous domaine "+i, wait=1);
+}
+
+// Restriction d'un champ global au sous-domaine ciblé
+// espace d'interpolation global
+fespace Vh(Th, P2);
+Vh uh = cos(x)*sin(2*pi*y);
+
+int[int] n2o;    // vecteur d'entiers
+mesh Thbis = trunc(Th, abs(color-1) < 1e-5, new2old = n2o);    // écrit dans n2o
+fespace Vhbis(Th, P2);
+Vhbis uhbis = u;    // déclaration de la restriction
+plot(Thbis, uh, wait=1);    // affichage du champ global et du sous-domaine
+plot(Thbis, uhbis, wait=1);    // affichage de la restriction uniquement
+// Le premier graphe montre le sous-domaine Thbis ainsi que la solution globale ;
+// le second graphe montre la restriction de uh au sous-domaine Thbis : uhbis.
+
+// Avec Scotch, toujours, on peut utiliser restrict pour obtenir les indices des
+// noeuds appartement au sous-domaine considere. 
+fespace Vhbis(Th, P2);
+int[int] subIdx = restrict(Vh, Vhbis, n2o);
+Vhbis uhbis;
+uhbis[] = uh(subIdx);
+
+// Construction du champ uh prolongé par continuité à partir de uhbis
+uh[] = 0;
+uh[](subIdx) = uhbis;
+plot(Th, uh, cmm="Prolongement par continuite");

@@ -1,0 +1,53 @@
+// D'après l'exposé de Pierre Jolivet aux FreeFEM days 2021
+// Démonstration de la résolution du laplacien sur un domaine bidimensionnel 
+// pour une grandeur scalaire dans un contexte parallèle.
+
+mesh Th = square(20, 20);    // maillage global
+
+// Distribution du maillage
+include "macro_ddm.idp"
+buildDmesh(Th)    // Distribue le maillage Th, Th fait maintenant reference au 
+                  // maillage local
+
+// Declaration de l'espace d'interpolation P1
+func Pk = P1;    // fonction, pour le reutiliser plus loin dans le code
+fespace Vh(Th, Pk);    // les elements de Vh sont locaux car definis sur Th
+
+// Declaration du probleme variationnel
+varf Poisson(u, v)
+    = int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) )
+    + int2d(Th)( v )    // le second membre vaut f = 1
+    + on(4, u=1)        // Dirichlet u = 1 sur le bord vertical gauche
+    ;
+
+// Creation de l'operateur distribue
+load "PETSc"
+macro dimension()2// EOM
+
+Mat A;
+createMat(Th, A, Pk)    // indexation parallele des inconnues
+
+A = Poisson(Vh, Vh, tgv=-1);  // affectation des valeurs de la matrice parallele
+ObjectView(A, format="ascii", name="myMat_ascii");
+
+// Creation du second membre du probleme
+Vh rhs;    // element local
+rhs = Poisson(0, Vh, tgv=-1);    // conditions aux limites
+cout << "norme max du 2nd membre " << rhs[].linfty << endl;
+
+
+// Parametrage de l'operateur distribue A
+// "-ksp_view" : affiche les details sur la methode de resolution du systeme
+// "-ksp_view_final_residual" affiche le residu final apres la derniere iteration
+// du solver
+set(A, sparams="-ksp_view -ksp_view_final_residual");
+
+// Resolution du systeme lineaire parallele
+real[int] sol = A^(-1)*rhs;
+
+// Affichage de la solution "brute"
+plot(sol, cmm="Graphe de la solution");
+// La solution est affichée sur un sous-domaine uniquement
+
+plotD(Th, sol, cmm="Solution globale")
+// La solution globale est affichee.

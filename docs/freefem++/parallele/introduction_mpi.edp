@@ -1,0 +1,113 @@
+// D'après l'exposé de Pierre Jolivet aux FreeFEM days 2021
+// Introduction à la communication entre processeurs avec MPI
+// Exploration de la bibliotheque macro_ddm.idp
+
+// Accéder au rang du job courant, et au nombre de jobs appelés
+cout << mpirank << " / " << mpisize << endl;
+
+// Communication entre les jobs
+real send = mpirank;
+real recv = -11;
+if(mpirank == 1) { 
+    Isend(processor(0), send);
+}
+else {
+    Irecv(processor(1), recv);
+}
+cout << mpirank << ", value is " << recv << endl;
+/* renvoie 
+1, value is -11
+0, value is 1
+*/
+
+// Déclaration d'un maillage
+mesh Th = square(20, 20);    // maillage global séquentiel
+mesh bTh = Th;    // maillage "backup"
+
+// Chargement de la bibliothèque pour les Domain Decomposition Method
+include "macro_ddm.idp"
+
+// Création du maillage distribué sur chaque processeur. Les sous-domaines 
+// s'intersectent
+buildDmesh(Th)
+cout << mpirank << " " << Th.nt << endl;
+/* renvoie, pour n = 4
+3 248
+1 250
+0 243
+2 235
+*/
+
+// Affichage des sous-domaines issus de la distribution du maillage
+plotDmesh(Th, cmm="Decomposition")
+
+// Déclaration de l'espace d'interpolation P2 sur le maillage Th.
+func Pk = P2;
+fespace Vh(Th, Pk);
+// Déclaration du problème variationnel associé au laplacien avec conditions aux
+// limites de Dirichlet / Neumann, et second membre. (Equation de Poisson)
+varf Poisson(u, v) 
+= int2d(Th)( dx(u)*dx(v) + dy(u)*dy(v) )
++ int2d(Th)( v )
++ on(4, u = 1)
+;
+
+// Import de la librairie d'interface avec PETSc.
+load "PETSc"
+Mat A;
+
+// Numerotation elements finis parallele
+createMat(Th, A, Pk)
+
+// Affectation parallele
+A = poisson(Vh, Vh);
+
+// Information sur l'objet A (il en existe beaucoup d'autres)
+ObjectView(A, format="info");
+
+// Affichage du champ local versus champ global
+Vh u = x + cos(y);
+plot(u, cmm="Champ global distribue sur le processeur 0");
+plotD(Th, u, cmm="Champ global");
+
+// Conservation de la correspondance local - global
+int[int] n2o;
+macro Thn2o()n2o// EOM
+buildDmesh(Th)
+
+// Utilisation de la correspondance
+fespace VhGlobal(backupTh, Pk);
+int[int] subIdx = restrict(Vh, Vhglobal, Thn2o);
+
+// Declaration de champs locaux et global
+Vh loc = cos(x) * cos(2*pi*y);
+VhGlobal glob, somme;
+
+// Application de la correspondance
+glob[](subIdx) = loc[];
+
+// Reduction du probleme par somme. Un probleme dû aux cellules fantomes se fait
+// voir. On utilisera les partitions de l'unité pour y remédier.
+mpiAllreduce(glob[], somme[], mpiCommWorld, mpiSUM);
+
+// Affichages
+plot(loc);    // uniquement sur le processeur 0
+plot(glob);    // champ local interpolé sur le maillage global
+plot(somme);    // champs locaux reduits par somme
+
+// Correction par les partitions de l'unité
+glob[] = 0;
+loc[] .*= A.D;
+glob[](subIdx) = loc[];
+mpiAllreduce(glob[], somme[], mpiCommWorld, mpiSUM);
+
+// Déclaration d'un vecteur PETSc et retour à la solution globale par réduction
+real[int] locPETSc;
+ChangeNumbering(A, loc[], locPETSc);
+ChangeNumbering(A, loc[], locPETSc, inverse=true);
+glob[](subIdx) = loc[];
+mpiAllreduce(glob[], loc[], mpiCommWorld, mpiSUM);
+
+// Export d'une solution aux formats .vtk ou .vtu
+int[int] ordre = 1; // 0 pour P0, 1 pour un ordre > 0
+savevtk("export.vtu", Th, loc, order=ordre);
