@@ -1,0 +1,22 @@
+# ignore DS_Store
+*.DS_Store
+
+# ignore all logs
+*.log
+
+# ignore all ADELI outputs
+ADELI*
+*.J2d.inside
+*.J2e.inside
+*.J2s.inside
+*.Work_rate
+*.Peierls
+*.Peierls.inside
+ecompr
+icompr
+icompr.sto
+jcompr
+pcompr
+
+# ignore all .vtk
+*.vtk
