@@ -113,3 +113,4 @@ with open (data_dir + "/" + "pcompr", "r") as buffer:
             pass
 
 print (len(snapshoots))
+print (fields.keys())

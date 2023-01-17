@@ -9,17 +9,10 @@
 
 # ignore all ADELI outputs
 ADELI*
-*.J2d.inside
-*.J2e.inside
-*.J2s.inside
-*.Work_rate
-*.Peierls
-*.Peierls.inside
-ecompr
-icompr
-icompr.sto
-jcompr
-pcompr
+*compr*
+elem*
+*.inside
+Invar*
+SCRIPT*
 
-# ignore all VTK files
-*.vtk
+*vtk*
